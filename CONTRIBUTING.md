@@ -12,5 +12,4 @@ Before submitting a pull request:
 
 The CLA Assistant workflow checks CLA acceptance on pull requests. Corporate
 contributors must ensure that the submitting contributor is authorized to bind
-the relevant entity. Repository administrators must configure the
-`CLA_ASSISTANT_TOKEN` secret for the workflow to record signatures.
+the relevant entity.
