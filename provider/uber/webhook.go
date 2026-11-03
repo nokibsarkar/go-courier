@@ -47,7 +47,7 @@ func (c *Client) DecodeWebhook(_ context.Context, header http.Header, body []byt
 		return nil, courier.Configuration(ProviderID, "webhook signing keys are required (WithWebhookSigningKeys)")
 	}
 	if len(body) > webhook.DefaultMaxBody {
-		return nil, &courier.Error{Kind: courier.KindResourceLimit, Provider: ProviderID, Op: "webhook.decode", Message: "webhook body too large"}
+		return nil, &courier.Error{Kind: courier.KindResourceLimit, Provider: ProviderID, Op: webhookDecodeOp, Message: "webhook body too large"}
 	}
 	sigs := append([]string(nil), header.Values(hdrUber)...)
 	if peekAllowsPostmates(body) {
@@ -87,12 +87,12 @@ func splitEvents(body []byte) ([]json.RawMessage, error) {
 	if len(t) > 0 && t[0] == '[' {
 		var arr []json.RawMessage
 		if err := json.Unmarshal(t, &arr); err != nil || len(arr) == 0 {
-			return nil, protocol("webhook.decode", "malformed event batch")
+			return nil, protocol(webhookDecodeOp, "malformed event batch")
 		}
 		return arr, nil
 	}
 	if len(t) == 0 || t[0] != '{' {
-		return nil, protocol("webhook.decode", "malformed event")
+		return nil, protocol(webhookDecodeOp, "malformed event")
 	}
 	return []json.RawMessage{json.RawMessage(t)}, nil
 }
@@ -133,11 +133,11 @@ func decodeEvents(acct courier.AccountID, body []byte) ([]courier.Event, error) 
 	for _, el := range els {
 		var e hookEvent
 		if err := json.Unmarshal(el, &e); err != nil {
-			return nil, protocol("webhook.decode", "malformed event")
+			return nil, protocol(webhookDecodeOp, "malformed event")
 		}
 		typ := eventType(e)
 		if typ == "" {
-			return nil, protocol("webhook.decode", "event lacks a type")
+			return nil, protocol(webhookDecodeOp, "event lacks a type")
 		}
 		var data hookData
 		if hasValue(e.Data) {

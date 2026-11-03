@@ -249,37 +249,37 @@ func (c *Client) fetchToken(ctx context.Context, creds Credentials) (auth.Token,
 		"grant_type":    {"client_credentials"},
 		"scope":         {tokenScope},
 	}
-	resp, err := c.http.Do(ctx, httpx.Request{Op: "auth.token", Method: http.MethodPost, URL: c.authURL,
+	resp, err := c.http.Do(ctx, httpx.Request{Op: authTokenOp, Method: http.MethodPost, URL: c.authURL,
 		Body: []byte(form.Encode()), ContentType: "application/x-www-form-urlencoded",
 		Mutation: false, ReplaySafe: false, ErrorMessage: errCode})
 	if err != nil {
 		var ce *courier.Error
 		if resp != nil && errors.As(err, &ce) && resp.Status >= 400 && resp.Status < 500 && resp.Status != 429 {
-			return auth.Token{}, &courier.Error{Kind: courier.KindCredentials, Provider: ProviderID, Op: "auth.token",
+			return auth.Token{}, &courier.Error{Kind: courier.KindCredentials, Provider: ProviderID, Op: authTokenOp,
 				StatusCode: resp.Status, ProviderCode: ce.ProviderCode, Outcome: courier.OutcomeRejected,
 				Message: "token request rejected"}
 		}
 		return auth.Token{}, err
 	}
 	var tr tokenResponse
-	if err := httpx.DecodeJSON(ProviderID, "auth.token", resp.Body, &tr); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, authTokenOp, resp.Body, &tr); err != nil {
 		return auth.Token{}, err
 	}
 	if tr.Error != "" {
-		return auth.Token{}, &courier.Error{Kind: courier.KindCredentials, Provider: ProviderID, Op: "auth.token",
+		return auth.Token{}, &courier.Error{Kind: courier.KindCredentials, Provider: ProviderID, Op: authTokenOp,
 			ProviderCode: truncate(tr.Error, 64), Outcome: courier.OutcomeRejected, Message: "token request rejected"}
 	}
 	if strings.TrimSpace(tr.AccessToken) == "" {
-		return auth.Token{}, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "auth.token", Message: "response lacks access_token"}
+		return auth.Token{}, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: authTokenOp, Message: "response lacks access_token"}
 	}
 	if tr.TokenType != "" && !strings.EqualFold(tr.TokenType, "bearer") {
-		return auth.Token{}, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "auth.token", Message: "unexpected token type"}
+		return auth.Token{}, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: authTokenOp, Message: "unexpected token type"}
 	}
 	tok := auth.Token{Value: auth.Secret(tr.AccessToken)}
 	if tr.ExpiresIn != "" {
 		n, err := tr.ExpiresIn.Int64()
 		if err != nil || n <= 0 {
-			return auth.Token{}, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "auth.token", Message: "invalid expires_in"}
+			return auth.Token{}, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: authTokenOp, Message: "invalid expires_in"}
 		}
 		tok.ExpiresAt = time.Now().Add(time.Duration(n) * time.Second)
 	}

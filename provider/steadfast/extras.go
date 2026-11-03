@@ -79,11 +79,11 @@ type returnJSON struct {
 
 func mapReturn(raw json.RawMessage) (*ReturnInfo, error) {
 	var r returnJSON
-	if err := httpx.DecodeJSON(ProviderID, "return.decode", raw, &r); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, returnDecodeOp, raw, &r); err != nil {
 		return nil, err
 	}
 	if r.ID.String() == "" {
-		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "return.decode", Message: "return request lacks an id"}
+		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: returnDecodeOp, Message: "return request lacks an id"}
 	}
 	return &ReturnInfo{ID: r.ID.String(), UserID: r.UserID.String(), ConsignmentID: r.ConsignmentID.String(), Reason: r.Reason, Status: r.Status,
 		CreatedAt: parseTime(r.CreatedAt), UpdatedAt: parseTime(r.UpdatedAt), Raw: raw}, nil
@@ -149,11 +149,11 @@ func (c *Client) CreateReturnRequest(ctx context.Context, target ReturnTarget, r
 	if r := strings.TrimSpace(reason); r != "" {
 		body["reason"] = r
 	}
-	resp, _, err := c.call(ctx, "return.create", http.MethodPost, "/create_return_request", body, true)
+	resp, _, err := c.call(ctx, returnCreateOp, http.MethodPost, "/create_return_request", body, true)
 	if err != nil {
 		return nil, err
 	}
-	raw, err := unwrap("return.create", resp.Body, "return_request")
+	raw, err := unwrap(returnCreateOp, resp.Body, "return_request")
 	if err != nil {
 		return nil, err
 	}
@@ -181,11 +181,11 @@ func (c *Client) GetReturnRequest(ctx context.Context, id string) (*ReturnInfo, 
 	if !digitsPattern.MatchString(strings.TrimSpace(id)) {
 		return nil, courier.Validation("id", "must be numeric")
 	}
-	resp, _, err := c.call(ctx, "return.get", http.MethodGet, "/get_return_request/"+url.PathEscape(strings.TrimSpace(id)), nil, false)
+	resp, _, err := c.call(ctx, returnGetOp, http.MethodGet, "/get_return_request/"+url.PathEscape(strings.TrimSpace(id)), nil, false)
 	if err != nil {
 		return nil, err
 	}
-	raw, err := unwrap("return.get", resp.Body, "return_request")
+	raw, err := unwrap(returnGetOp, resp.Body, "return_request")
 	if err != nil {
 		return nil, err
 	}
@@ -199,11 +199,11 @@ func (c *Client) ListReturnRequests(ctx context.Context, page int) ([]ReturnInfo
 	if err != nil {
 		return nil, err
 	}
-	resp, _, err := c.call(ctx, "return.list", http.MethodGet, path, nil, false)
+	resp, _, err := c.call(ctx, returnListOp, http.MethodGet, path, nil, false)
 	if err != nil {
 		return nil, err
 	}
-	items, err := unwrapList("return.list", resp.Body)
+	items, err := unwrapList(returnListOp, resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +255,7 @@ type paymentJSON struct {
 func payMoney(v any) (*courier.Money, error) {
 	d, ok, err := courier.ParseAmount(toAmountInput(v))
 	if err != nil {
-		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "payment.decode", Message: "invalid payment amount", Err: err}
+		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: paymentDecodeOp, Message: "invalid payment amount", Err: err}
 	}
 	if !ok {
 		return nil, nil
@@ -266,7 +266,7 @@ func payMoney(v any) (*courier.Money, error) {
 
 func mapPayment(raw json.RawMessage) (*Payment, error) {
 	var p paymentJSON
-	if err := httpx.DecodeJSON(ProviderID, "payment.decode", raw, &p); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, paymentDecodeOp, raw, &p); err != nil {
 		return nil, err
 	}
 	id := scalarText(p.PaymentID)
@@ -274,7 +274,7 @@ func mapPayment(raw json.RawMessage) (*Payment, error) {
 		id = scalarText(p.ID)
 	}
 	if id == "" {
-		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "payment.decode", Message: "payment lacks an id"}
+		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: paymentDecodeOp, Message: "payment lacks an id"}
 	}
 	out := &Payment{ID: id, Method: strings.TrimSpace(p.Method), StatusLabel: strings.TrimSpace(p.StatusLabel),
 		CreatedAt: strings.TrimSpace(p.CreatedAt), ReadyAt: strings.TrimSpace(p.ReadyAt), PaidAt: strings.TrimSpace(p.PaidAt), Raw: raw}
@@ -313,11 +313,11 @@ func (c *Client) ListPayments(ctx context.Context, page int) ([]Payment, error) 
 	if err != nil {
 		return nil, err
 	}
-	resp, _, err := c.call(ctx, "payment.list", http.MethodGet, path, nil, false)
+	resp, _, err := c.call(ctx, paymentListOp, http.MethodGet, path, nil, false)
 	if err != nil {
 		return nil, err
 	}
-	items, err := unwrapList("payment.list", resp.Body)
+	items, err := unwrapList(paymentListOp, resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -345,11 +345,11 @@ func (c *Client) GetPayment(ctx context.Context, id string) (*Payment, error) {
 	if digits == "" {
 		return nil, courier.Validation("id", "must contain digits (for example SFC-88213 or 88213)")
 	}
-	resp, _, err := c.call(ctx, "payment.get", http.MethodGet, "/payments/"+digits, nil, false)
+	resp, _, err := c.call(ctx, paymentGetOp, http.MethodGet, "/payments/"+digits, nil, false)
 	if err != nil {
 		return nil, err
 	}
-	raw, err := unwrap("payment.get", resp.Body, "payment")
+	raw, err := unwrap(paymentGetOp, resp.Body, "payment")
 	if err != nil {
 		return nil, err
 	}
@@ -378,11 +378,11 @@ type PoliceStation struct {
 // ListPoliceStations returns every district and its police stations (reference
 // data).
 func (c *Client) ListPoliceStations(ctx context.Context) ([]District, error) {
-	resp, _, err := c.call(ctx, "locations.police_stations", http.MethodGet, "/police_stations", nil, false)
+	resp, _, err := c.call(ctx, policeStationsOp, http.MethodGet, "/police_stations", nil, false)
 	if err != nil {
 		return nil, err
 	}
-	items, err := unwrapList("locations.police_stations", resp.Body)
+	items, err := unwrapList(policeStationsOp, resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -400,11 +400,11 @@ func (c *Client) ListPoliceStations(ctx context.Context) ([]District, error) {
 				SearchTags json.RawMessage `json:"search_tags"`
 			} `json:"policestations"`
 		}
-		if err := httpx.DecodeJSON(ProviderID, "locations.police_stations", it, &p); err != nil {
+		if err := httpx.DecodeJSON(ProviderID, policeStationsOp, it, &p); err != nil {
 			return out, err
 		}
 		if strings.TrimSpace(p.Name) == "" {
-			return out, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "locations.police_stations", Message: fmt.Sprintf("record %d lacks a name", i)}
+			return out, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: policeStationsOp, Message: fmt.Sprintf("record %d lacks a name", i)}
 		}
 		stations := make([]PoliceStation, 0, len(p.PoliceStations))
 		for _, station := range p.PoliceStations {

@@ -208,16 +208,16 @@ func validateCreate(req courier.CreateShipmentRequest) (createInput, error) {
 		return p, err
 	}
 	if req.IdempotencyKey != "" {
-		return p, courier.Unsupported(ProviderID, "shipment.create", "Lalamove documents no idempotency key; reconcile via GetOrder and metadata merchantOrderId")
+		return p, courier.Unsupported(ProviderID, shipmentCreateOp, "Lalamove documents no idempotency key; reconcile via GetOrder and metadata merchantOrderId")
 	}
 	if req.COD != nil || req.DeliveryCharge != nil {
-		return p, courier.Unsupported(ProviderID, "shipment.create", "COD and delivery charge are not supported by this adapter")
+		return p, courier.Unsupported(ProviderID, shipmentCreateOp, "COD and delivery charge are not supported by this adapter")
 	}
 	if req.Delivery != "" && req.Delivery != courier.DeliveryHome {
-		return p, courier.Unsupported(ProviderID, "shipment.create", "point delivery is not supported")
+		return p, courier.Unsupported(ProviderID, shipmentCreateOp, "point delivery is not supported")
 	}
 	if req.Pickup.PickupPoint != "" || req.Pickup.Store != "" || req.Recipient.PickupPoint != "" || req.Recipient.Store != "" {
-		return p, courier.Unsupported(ProviderID, "shipment.create", "pickup points and stores are not supported")
+		return p, courier.Unsupported(ProviderID, shipmentCreateOp, "pickup points and stores are not supported")
 	}
 	var err error
 	if p.senderName = strings.TrimSpace(req.Pickup.Contact.Name); p.senderName == "" || utf8.RuneCountInString(p.senderName) > 100 {
@@ -252,19 +252,19 @@ func coordMatch(got flexString, want float64) bool {
 func checkStops(req courier.CreateShipmentRequest, q *quotationData) ([]string, error) {
 	switch {
 	case len(q.Stops) > 2:
-		return nil, courier.Unsupported(ProviderID, "shipment.create", "multi-stop quotations are not supported; exactly one pickup and one recipient")
+		return nil, courier.Unsupported(ProviderID, shipmentCreateOp, "multi-stop quotations are not supported; exactly one pickup and one recipient")
 	case len(q.Stops) < 2:
-		return nil, protocol("shipment.create", "quotation has fewer than two stops")
+		return nil, protocol(shipmentCreateOp, "quotation has fewer than two stops")
 	}
 	ids := make([]string, 2)
 	for i, s := range q.Stops {
 		ids[i] = string(s.StopID)
 		if !idPattern.MatchString(ids[i]) {
-			return nil, protocol("shipment.create", "quotation stop lacks a valid stopId")
+			return nil, protocol(shipmentCreateOp, "quotation stop lacks a valid stopId")
 		}
 	}
 	if ids[0] == ids[1] {
-		return nil, protocol("shipment.create", "quotation stop IDs are not distinct")
+		return nil, protocol(shipmentCreateOp, "quotation stop IDs are not distinct")
 	}
 	for i, p := range []struct {
 		name  string

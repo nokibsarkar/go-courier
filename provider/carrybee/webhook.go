@@ -76,12 +76,12 @@ func (c *Client) DecodeWebhook(_ context.Context, header http.Header, body []byt
 		return nil, err
 	}
 	var p hookPayload
-	if err := httpx.DecodeJSON(ProviderID, "webhook.decode", body, &p); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, webhookDecodeOp, body, &p); err != nil {
 		return nil, err
 	}
 	ev := strings.TrimSpace(p.Event)
 	if ev == "" {
-		return nil, protocol("webhook.decode", "payload lacks event")
+		return nil, protocol(webhookDecodeOp, "payload lacks event")
 	}
 	out := courier.Event{Provider: ProviderID, Account: acct, Trust: courier.TrustVerified, Type: ev,
 		Payload: append(json.RawMessage(nil), body...)}

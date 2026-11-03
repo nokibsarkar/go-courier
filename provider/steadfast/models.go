@@ -100,14 +100,14 @@ func (b *bulkItem) normalise() {
 
 // decodeBulkItems accepts a bare array or a {"data":[...]} wrapper.
 func decodeBulkItems(body []byte) ([]bulkItem, error) {
-	raws, err := unwrapList("shipment.create_batch", body)
+	raws, err := unwrapList(shipmentBatchOp, body)
 	if err != nil {
 		return nil, err
 	}
 	items := make([]bulkItem, 0, len(raws))
 	for _, r := range raws {
 		var it bulkItem
-		if err := httpx.DecodeJSON(ProviderID, "shipment.create_batch", r, &it); err != nil {
+		if err := httpx.DecodeJSON(ProviderID, shipmentBatchOp, r, &it); err != nil {
 			return nil, err
 		}
 		items = append(items, it)

@@ -90,12 +90,12 @@ func (c *Client) DecodeWebhook(_ context.Context, header http.Header, body []byt
 		return nil, err
 	}
 	var p hookPayload
-	if err := httpx.DecodeJSON(ProviderID, "webhook.decode", body, &p); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, webhookDecodeOp, body, &p); err != nil {
 		return nil, err
 	}
 	id := strings.TrimSpace(p.TrackingNumber)
 	if !idPattern.MatchString(id) || strings.TrimSpace(p.Status) == "" {
-		return nil, protocol("webhook.decode", "event lacks tracking_number or status")
+		return nil, protocol(webhookDecodeOp, "event lacks tracking_number or status")
 	}
 	now := time.Now().UTC()
 	at := parseTime(p.Timestamp)

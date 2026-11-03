@@ -436,7 +436,7 @@ func (c *Client) CreateShipmentWithOptions(ctx context.Context, req courier.Crea
 	}
 	exp := parseTime(qd.ExpiresAt)
 	if exp == nil {
-		return nil, protocol("shipment.create", "quotation lacks a usable expiresAt; refusing to order")
+		return nil, protocol(shipmentCreateOp, "quotation lacks a usable expiresAt; refusing to order")
 	}
 	if !c.now().Before(*exp) {
 		return nil, courier.Validation("quote_id", "quotation has expired; request a new quotation")
@@ -457,11 +457,11 @@ func (c *Client) CreateShipmentWithOptions(ctx context.Context, req courier.Crea
 	if m := strings.TrimSpace(string(req.MerchantOrderID)); m != "" {
 		body.Data.Metadata = map[string]string{"merchantOrderId": m}
 	}
-	resp, creds, err := c.call(ctx, "shipment.create", http.MethodPost, "/orders", body, true)
+	resp, creds, err := c.call(ctx, shipmentCreateOp, http.MethodPost, "/orders", body, true)
 	if err != nil {
 		return nil, err
 	}
-	od, err := decodeOrder("shipment.create", resp.Body)
+	od, err := decodeOrder(shipmentCreateOp, resp.Body)
 	if err != nil {
 		return nil, asIndeterminate(err)
 	}
@@ -558,9 +558,9 @@ func (c *Client) TrackShipment(ctx context.Context, req courier.TrackingRequest)
 		id = v
 	}
 	if id == "" {
-		return nil, courier.Unsupported(ProviderID, "tracking.get", "supported lookups: order ID (provider shipment ID or code)")
+		return nil, courier.Unsupported(ProviderID, trackingGetOp, "supported lookups: order ID (provider shipment ID or code)")
 	}
-	od, raw, creds, err := c.fetchOrder(ctx, "tracking.get", func(cr Credentials) (string, error) {
+	od, raw, creds, err := c.fetchOrder(ctx, trackingGetOp, func(cr Credentials) (string, error) {
 		if req.Account != "" && cr.AccountID != "" && req.Account != cr.AccountID {
 			return "", courier.Validation("account", "tracking account does not match the credentials")
 		}

@@ -250,19 +250,19 @@ func (c *Client) CreateShipment(ctx context.Context, req courier.CreateShipmentR
 	if err != nil {
 		return nil, err
 	}
-	resp, creds, err := c.call(ctx, "shipment.create", http.MethodPost, "/create_order", order, true)
+	resp, creds, err := c.call(ctx, shipmentCreateOp, http.MethodPost, "/create_order", order, true)
 	if err != nil {
 		return nil, err
 	}
 	var out createResponse
-	if err := httpx.DecodeJSON(ProviderID, "shipment.create", resp.Body, &out); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, shipmentCreateOp, resp.Body, &out); err != nil {
 		return nil, asIndeterminate(err)
 	}
-	if err := checkEmbedded("shipment.create", out.envelope); err != nil {
+	if err := checkEmbedded(shipmentCreateOp, out.envelope); err != nil {
 		return nil, err
 	}
 	if out.Consignment == nil || out.Consignment.ConsignmentID.String() == "" {
-		return nil, indeterminateProtocol("shipment.create", "response lacks a consignment")
+		return nil, indeterminateProtocol(shipmentCreateOp, "response lacks a consignment")
 	}
 	sh, err := mapConsignment(creds.AccountID, out.Consignment, resp.Body)
 	if err != nil {
@@ -318,7 +318,7 @@ func (c *Client) CreateShipments(ctx context.Context, reqs []courier.CreateShipm
 	if len(orders) == 0 {
 		return res, joinErr(errs)
 	}
-	resp, creds, err := c.call(ctx, "shipment.create_batch", http.MethodPost, "/create_order/bulk-order", bulkRequest{Data: orders}, true)
+	resp, creds, err := c.call(ctx, shipmentBatchOp, http.MethodPost, "/create_order/bulk-order", bulkRequest{Data: orders}, true)
 	if err != nil {
 		// Whole-request failure: sent items are unresolved, not failed.
 		st := courier.BatchFailed
@@ -337,8 +337,8 @@ func (c *Client) CreateShipments(ctx context.Context, reqs []courier.CreateShipm
 	if err != nil {
 		// A 200 that is not a list may be an embedded failure envelope.
 		var env envelope
-		if httpx.DecodeJSON(ProviderID, "shipment.create_batch", resp.Body, &env) == nil {
-			if e := checkEmbedded("shipment.create_batch", env); e != nil {
+		if httpx.DecodeJSON(ProviderID, shipmentBatchOp, resp.Body, &env) == nil {
+			if e := checkEmbedded(shipmentBatchOp, env); e != nil {
 				for _, i := range index {
 					res.Items[i].Status, res.Items[i].Err = courier.BatchFailed, e
 				}
@@ -364,7 +364,7 @@ func (c *Client) CreateShipments(ctx context.Context, reqs []courier.CreateShipm
 			i, ok = index[it.Invoice]
 		}
 		if !ok || res.Items[i].Status != courier.BatchNotAttempted {
-			errs = append(errs, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "shipment.create_batch",
+			errs = append(errs, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: shipmentBatchOp,
 				Message: "response item does not match a submitted order"})
 			continue
 		}
@@ -374,7 +374,7 @@ func (c *Client) CreateShipments(ctx context.Context, reqs []courier.CreateShipm
 			if msg == "" {
 				msg = "provider rejected the item"
 			}
-			e := &courier.Error{Kind: courier.KindRejected, Provider: ProviderID, Op: "shipment.create_batch", Message: truncateMsg(msg), Outcome: courier.OutcomeRejected}
+			e := &courier.Error{Kind: courier.KindRejected, Provider: ProviderID, Op: shipmentBatchOp, Message: truncateMsg(msg), Outcome: courier.OutcomeRejected}
 			res.Items[i].Status, res.Items[i].Err = courier.BatchFailed, e
 			errs = append(errs, fmt.Errorf("item %d: %w", i, e))
 			continue
@@ -395,7 +395,7 @@ func (c *Client) CreateShipments(ctx context.Context, reqs []courier.CreateShipm
 	}
 	for _, i := range index { // sent but unanswered
 		if res.Items[i].Status == courier.BatchNotAttempted {
-			e := indeterminateProtocol("shipment.create_batch", "item missing from response")
+			e := indeterminateProtocol(shipmentBatchOp, "item missing from response")
 			res.Items[i].Status, res.Items[i].Err = courier.BatchIndeterminate, e
 			errs = append(errs, fmt.Errorf("item %d: %w", i, e))
 		}
@@ -420,39 +420,39 @@ func (c *Client) TrackShipment(ctx context.Context, req courier.TrackingRequest)
 	if err != nil {
 		return nil, err
 	}
-	resp, creds, err := c.call(ctx, "tracking.get", http.MethodGet, path, nil, false)
+	resp, creds, err := c.call(ctx, trackingGetOp, http.MethodGet, path, nil, false)
 	if err != nil {
 		return nil, err
 	}
 	var out statusResponse
-	if err := httpx.DecodeJSON(ProviderID, "tracking.get", resp.Body, &out); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, trackingGetOp, resp.Body, &out); err != nil {
 		return nil, err
 	}
-	if err := checkEmbedded("tracking.get", out.envelope); err != nil {
+	if err := checkEmbedded(trackingGetOp, out.envelope); err != nil {
 		return nil, err
 	}
 	if out.DeliveryStatus == nil || strings.TrimSpace(*out.DeliveryStatus) == "" {
-		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "tracking.get", Message: "response lacks delivery_status"}
+		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: trackingGetOp, Message: "response lacks delivery_status"}
 	}
 	return mapStatus(creds.AccountID, req, *out.DeliveryStatus, resp.Body, time.Now().UTC()), nil
 }
 
 // GetBalance returns the merchant's current balance in BDT.
 func (c *Client) GetBalance(ctx context.Context) (*courier.Balance, error) {
-	resp, creds, err := c.call(ctx, "balance.get", http.MethodGet, "/get_balance", nil, false)
+	resp, creds, err := c.call(ctx, balanceGetOp, http.MethodGet, "/get_balance", nil, false)
 	if err != nil {
 		return nil, err
 	}
 	var out balanceResponse
-	if err := httpx.DecodeJSON(ProviderID, "balance.get", resp.Body, &out); err != nil {
+	if err := httpx.DecodeJSON(ProviderID, balanceGetOp, resp.Body, &out); err != nil {
 		return nil, err
 	}
-	if err := checkEmbedded("balance.get", out.envelope); err != nil {
+	if err := checkEmbedded(balanceGetOp, out.envelope); err != nil {
 		return nil, err
 	}
 	d, ok, err := courier.ParseAmount(toAmountInput(out.CurrentBalance))
 	if err != nil || !ok {
-		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "balance.get", Message: "missing or invalid current_balance", Err: err}
+		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: balanceGetOp, Message: "missing or invalid current_balance", Err: err}
 	}
 	return &courier.Balance{Provider: ProviderID, Account: creds.AccountID, Amount: courier.NewBDT(d), Raw: resp.Body}, nil
 }

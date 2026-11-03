@@ -27,7 +27,7 @@ func (c *Client) CreateShipment(ctx context.Context, req courier.CreateShipmentR
 	if err != nil {
 		return nil, err
 	}
-	const op = "shipment.create"
+	const op = shipmentCreateOp
 	resp, creds, err := c.call(ctx, callSpec{op: op, method: http.MethodPost, path: "/orders", payload: order, mutation: true})
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (c *Client) TrackShipment(ctx context.Context, req courier.TrackingRequest)
 	if id == "" {
 		v, ok := req.Find(courier.LookupProviderShipmentID)
 		if !ok {
-			return nil, courier.Unsupported(ProviderID, "tracking.get", "supported lookups: tracking code or provider shipment ID (consignment ID); merchant order lookup is unverified")
+			return nil, courier.Unsupported(ProviderID, trackingGetOp, "supported lookups: tracking code or provider shipment ID (consignment ID); merchant order lookup is unverified")
 		}
 		id = v
 	}
@@ -79,7 +79,7 @@ func (c *Client) TrackShipment(ctx context.Context, req courier.TrackingRequest)
 	if err != nil {
 		return nil, err
 	}
-	const op = "tracking.get"
+	const op = trackingGetOp
 	resp, creds, err := c.call(ctx, callSpec{op: op, method: http.MethodGet, path: "/orders/" + p + "/info"})
 	if err != nil {
 		return nil, err

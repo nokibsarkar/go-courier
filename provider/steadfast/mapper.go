@@ -187,7 +187,7 @@ func trackingPath(r courier.TrackingRequest) (string, error) {
 		}
 		return "/status_by_cid/" + url.PathEscape(v), nil
 	}
-	return "", courier.Unsupported(ProviderID, "tracking.get", "supported lookups: tracking code, merchant order ID, provider shipment ID")
+	return "", courier.Unsupported(ProviderID, trackingGetOp, "supported lookups: tracking code, merchant order ID, provider shipment ID")
 }
 
 // mapStatusValue maps Steadfast delivery statuses. "*_approval_pending" is the

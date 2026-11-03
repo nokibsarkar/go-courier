@@ -115,20 +115,20 @@ func (c *Client) DecodeWebhook(_ context.Context, header http.Header, body []byt
 	}
 	var items []json.RawMessage
 	if t := strings.TrimSpace(string(body)); strings.HasPrefix(t, "[") {
-		if err := httpx.DecodeJSON(ProviderID, "webhook.decode", body, &items); err != nil {
+		if err := httpx.DecodeJSON(ProviderID, webhookDecodeOp, body, &items); err != nil {
 			return nil, err
 		}
 	} else {
 		items = []json.RawMessage{json.RawMessage(body)}
 	}
 	if len(items) == 0 {
-		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "webhook.decode", Message: "empty event list"}
+		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: webhookDecodeOp, Message: "empty event list"}
 	}
 	now := time.Now().UTC()
 	events := make([]courier.Event, 0, len(items))
 	for k, raw := range items {
 		var p webhookPayload
-		if err := httpx.DecodeJSON(ProviderID, "webhook.decode", raw, &p); err != nil {
+		if err := httpx.DecodeJSON(ProviderID, webhookDecodeOp, raw, &p); err != nil {
 			return nil, err
 		}
 		// notification_type is normally present. To stay lenient, a payload that
@@ -138,11 +138,11 @@ func (c *Client) DecodeWebhook(_ context.Context, header http.Header, body []byt
 			p.NotificationType = notifyDeliveryStatus
 		}
 		if strings.TrimSpace(p.NotificationType) == "" {
-			return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "webhook.decode", Message: "event lacks notification_type"}
+			return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: webhookDecodeOp, Message: "event lacks notification_type"}
 		}
 		parcelEvent := p.NotificationType == notifyDeliveryStatus || p.NotificationType == notifyTrackingUpdate
 		if parcelEvent && !digitsPattern.MatchString(p.ConsignmentID.String()) {
-			return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "webhook.decode", Message: "event lacks a consignment_id"}
+			return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: webhookDecodeOp, Message: "event lacks a consignment_id"}
 		}
 		ev := courier.Event{Provider: ProviderID, Account: acct, Trust: courier.TrustVerified, ID: eventID(header, k, len(items)),
 			Type: p.NotificationType, OccurredAt: parseTime(p.UpdatedAt), Payload: append(json.RawMessage(nil), raw...)}
@@ -150,7 +150,7 @@ func (c *Client) DecodeWebhook(_ context.Context, header http.Header, body []byt
 		switch p.NotificationType {
 		case notifyDeliveryStatus:
 			if strings.TrimSpace(p.Status) == "" {
-				return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "webhook.decode", Message: "delivery_status event lacks status"}
+				return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: webhookDecodeOp, Message: "delivery_status event lacks status"}
 			}
 			tr := mapStatus(acct, courier.TrackingRequest{}, p.Status, raw, now)
 			tr.Ref = ref

@@ -85,7 +85,7 @@ func (c *Client) Quote(ctx context.Context, req courier.QuoteRequest) (*courier.
 // delivery is created without a quote_id. Timeouts and 5xx are indeterminate;
 // the request is never retried automatically.
 func (c *Client) CreateShipment(ctx context.Context, req courier.CreateShipmentRequest) (*courier.Shipment, error) {
-	const op = "shipment.create"
+	const op = shipmentCreateOp
 	body, err := buildCreate(req)
 	if err != nil {
 		return nil, err
@@ -154,19 +154,19 @@ func (c *Client) TrackShipment(ctx context.Context, req courier.TrackingRequest)
 	if id == "" {
 		v, ok := req.Find(courier.LookupProviderShipmentID)
 		if !ok {
-			return nil, courier.Unsupported(ProviderID, "tracking.get", "supported lookups: tracking code or provider shipment ID (the Uber delivery ID)")
+			return nil, courier.Unsupported(ProviderID, trackingGetOp, "supported lookups: tracking code or provider shipment ID (the Uber delivery ID)")
 		}
 		id = v
 	}
 	if err := checkDeliveryID("code", id); err != nil {
 		return nil, err
 	}
-	out, resp, creds, err := c.getDelivery(ctx, "tracking.get", id, req.Account)
+	out, resp, creds, err := c.getDelivery(ctx, trackingGetOp, id, req.Account)
 	if err != nil {
 		return nil, err
 	}
 	if strings.TrimSpace(out.Status) == "" {
-		return nil, protocol("tracking.get", "response lacks status")
+		return nil, protocol(trackingGetOp, "response lacks status")
 	}
 	return trackingFromDelivery(creds.account(), id, out, resp.Body, time.Now().UTC()), nil
 }
