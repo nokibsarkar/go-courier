@@ -5,13 +5,13 @@ import "encoding/json"
 // envelope is the common response wrapper. success may be a bool or the
 // strings "true"/"false"; response_code is a number.
 type envelope struct {
-	Success      json.RawMessage `json:"success"`
-	ResponseCode json.Number     `json:"response_code"`
-	Message      json.RawMessage `json:"message"`
-	Errors       []any           `json:"errors"`
-	QueryData    json.RawMessage `json:"query_data"`
-	Data         json.RawMessage `json:"data"`
-	ID           string          `json:"ID"`
+	Success      json.RawMessage   `json:"success"`
+	ResponseCode json.Number       `json:"response_code"`
+	Message      json.RawMessage   `json:"message"`
+	Errors       []json.RawMessage `json:"errors"`
+	QueryData    json.RawMessage   `json:"query_data"`
+	Data         json.RawMessage   `json:"data"`
+	ID           string            `json:"ID"`
 }
 
 type orderBody struct {

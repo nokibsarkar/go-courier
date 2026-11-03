@@ -140,8 +140,8 @@ type orderEnvelope struct {
 		Order struct {
 			ConsignmentID json.RawMessage `json:"consignment_id"`
 			StoreID       json.RawMessage `json:"store_id"`
-			DeliveryFee   any             `json:"delivery_fee"`
-			CODFee        any             `json:"cod_fee"`
+			DeliveryFee   json.RawMessage `json:"delivery_fee"`
+			CODFee        json.RawMessage `json:"cod_fee"`
 		} `json:"order"`
 	} `json:"data"`
 }
@@ -236,8 +236,8 @@ func (c *Client) TrackShipment(ctx context.Context, req courier.TrackingRequest)
 	}
 	var out struct {
 		Data struct {
-			TransferStatus  string `json:"transfer_status"`
-			CollectedAmount any    `json:"collected_amount"`
+			TransferStatus  string          `json:"transfer_status"`
+			CollectedAmount json.RawMessage `json:"collected_amount"`
 		} `json:"data"`
 	}
 	if err := jsonDecode(op, resp.Body, &out); err != nil {
@@ -286,8 +286,8 @@ func (c *Client) CancelOrder(ctx context.Context, consignmentID, reason string, 
 	if err != nil {
 		return err
 	}
-	var any map[string]json.RawMessage
-	if jsonDecode(op, resp.Body, &any) != nil {
+	var fields map[string]json.RawMessage
+	if jsonDecode(op, resp.Body, &fields) != nil {
 		return asIndeterminate(protocol(op, "response is not a JSON object"))
 	}
 	return nil

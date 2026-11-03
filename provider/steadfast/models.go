@@ -38,13 +38,13 @@ type createResponse struct {
 }
 
 type consignment struct {
-	ConsignmentID json.Number `json:"consignment_id"`
-	Invoice       string      `json:"invoice"`
-	TrackingCode  string      `json:"tracking_code"`
-	Status        string      `json:"status"`
-	CODAmount     any         `json:"cod_amount"`
-	CreatedAt     string      `json:"created_at"`
-	UpdatedAt     string      `json:"updated_at"`
+	ConsignmentID json.Number     `json:"consignment_id"`
+	Invoice       string          `json:"invoice"`
+	TrackingCode  string          `json:"tracking_code"`
+	Status        string          `json:"status"`
+	CODAmount     json.RawMessage `json:"cod_amount"`
+	CreatedAt     string          `json:"created_at"`
+	UpdatedAt     string          `json:"updated_at"`
 }
 
 type bulkItem struct {
@@ -53,7 +53,7 @@ type bulkItem struct {
 	TrackingCode  string          `json:"tracking_code"`
 	Status        string          `json:"status"`
 	Error         json.RawMessage `json:"error"`
-	CODAmount     any             `json:"cod_amount"`
+	CODAmount     json.RawMessage `json:"cod_amount"`
 }
 
 // errText flattens the item error: a JSON-encoded array of codes inside a
@@ -84,7 +84,7 @@ type statusResponse struct {
 
 type balanceResponse struct {
 	envelope
-	CurrentBalance any `json:"current_balance"`
+	CurrentBalance json.RawMessage `json:"current_balance"`
 }
 
 // normalise trims padding in bulk items (for example " error " and " null ") and drops the literal string "null" so it is never

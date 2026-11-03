@@ -3,7 +3,6 @@ package steadfast
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
@@ -21,19 +20,6 @@ var (
 )
 
 func errorsJoin(errs []error) error { return errors.Join(errs...) }
-
-func toAmountInput(v any) any {
-	switch t := v.(type) {
-	case json.Number:
-		return t
-	case string:
-		return t
-	case nil:
-		return nil
-	default:
-		return fmt.Sprint(t)
-	}
-}
 
 // localPhone converts any accepted phone form to Steadfast's 11-digit local
 // Bangladeshi form. Non-Bangladeshi numbers are rejected (provider limit).
@@ -164,7 +150,7 @@ func mapConsignment(acct courier.AccountID, c *consignment, raw []byte) (*courie
 		UpdatedAt:       parseTime(c.UpdatedAt),
 		Raw:             raw,
 	}
-	if d, ok, err := courier.ParseAmount(toAmountInput(c.CODAmount)); err == nil && ok {
+	if d, ok, err := courier.ParseAmount(c.CODAmount); err == nil && ok {
 		m := courier.NewBDT(d)
 		sh.COD = &m
 	}

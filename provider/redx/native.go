@@ -118,7 +118,12 @@ func (c *Client) CreatePickupStore(ctx context.Context, in PickupStoreInput) (*P
 	if in.AreaID <= 0 {
 		return nil, courier.Validation("area_id", "required")
 	}
-	body := map[string]any{"name": name, "phone": phone, "address": addr, "area_id": in.AreaID}
+	body := struct {
+		Name    string `json:"name"`
+		Phone   string `json:"phone"`
+		Address string `json:"address"`
+		AreaID  int64  `json:"area_id"`
+	}{Name: name, Phone: phone, Address: addr, AreaID: in.AreaID}
 	resp, _, err := c.call(ctx, callSpec{op: op, method: http.MethodPost, path: "/pickup/store", payload: body, mutation: true})
 	if err != nil {
 		return nil, err

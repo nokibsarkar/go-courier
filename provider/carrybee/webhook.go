@@ -39,7 +39,7 @@ type hookPayload struct {
 	MerchantOrderID string          `json:"merchant_order_id"`
 	Reason          string          `json:"reason"`
 	Attempt         json.RawMessage `json:"attempt"`
-	CollectedAmount any             `json:"collected_amount"`
+	CollectedAmount json.RawMessage `json:"collected_amount"`
 	InvoiceID       json.RawMessage `json:"invoice_id"`
 }
 

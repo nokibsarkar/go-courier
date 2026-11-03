@@ -450,7 +450,7 @@ func (c *Client) GetBalance(ctx context.Context) (*courier.Balance, error) {
 	if err := checkEmbedded(balanceGetOp, out.envelope); err != nil {
 		return nil, err
 	}
-	d, ok, err := courier.ParseAmount(toAmountInput(out.CurrentBalance))
+	d, ok, err := courier.ParseAmount(out.CurrentBalance)
 	if err != nil || !ok {
 		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: balanceGetOp, Message: "missing or invalid current_balance", Err: err}
 	}

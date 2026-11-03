@@ -240,20 +240,20 @@ type Payment struct {
 type paymentJSON struct {
 	PaymentID   json.RawMessage `json:"payment_id"`
 	ID          json.RawMessage `json:"id"`
-	Amount      any             `json:"amount"`
+	Amount      json.RawMessage `json:"amount"`
 	Method      string          `json:"method"`
 	StatusLabel string          `json:"status_label"`
-	DueBills    any             `json:"due_bills"`
-	PaidBills   any             `json:"paid_bills"`
-	Charges     any             `json:"charges"`
-	Total       any             `json:"total"`
+	DueBills    json.RawMessage `json:"due_bills"`
+	PaidBills   json.RawMessage `json:"paid_bills"`
+	Charges     json.RawMessage `json:"charges"`
+	Total       json.RawMessage `json:"total"`
 	CreatedAt   string          `json:"created_at"`
 	ReadyAt     string          `json:"ready_at"`
 	PaidAt      string          `json:"paid_at"`
 }
 
-func payMoney(v any) (*courier.Money, error) {
-	d, ok, err := courier.ParseAmount(toAmountInput(v))
+func payMoney(v json.RawMessage) (*courier.Money, error) {
+	d, ok, err := courier.ParseAmount(v)
 	if err != nil {
 		return nil, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: paymentDecodeOp, Message: "invalid payment amount", Err: err}
 	}
@@ -281,7 +281,7 @@ func mapPayment(raw json.RawMessage) (*Payment, error) {
 	var err error
 	for _, f := range []struct {
 		dst *(*courier.Money)
-		src any
+		src json.RawMessage
 	}{{&out.Amount, p.Amount}, {&out.DueBills, p.DueBills}, {&out.PaidBills, p.PaidBills}, {&out.Charges, p.Charges}, {&out.Total, p.Total}} {
 		if *f.dst, err = payMoney(f.src); err != nil {
 			return nil, err

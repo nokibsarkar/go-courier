@@ -162,7 +162,7 @@ func bounds(res []SourceResult) *CombinedBounds {
 		return nil
 	}
 	pick := func(f func(*courier.DeliveryCounts) *int) *Bounds {
-		minV, sum, any, all := 0, 0, false, true
+		minV, sum, seen, all := 0, 0, false, true
 		for _, r := range ok {
 			var p *int
 			if r.Counts != nil {
@@ -172,11 +172,11 @@ func bounds(res []SourceResult) *CombinedBounds {
 				all = false
 				continue
 			}
-			any = true
+			seen = true
 			sum += *p
 			minV = max(minV, *p)
 		}
-		if !any {
+		if !seen {
 			return nil
 		}
 		b := &Bounds{Min: minV}

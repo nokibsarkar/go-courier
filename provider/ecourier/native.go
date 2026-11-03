@@ -78,12 +78,14 @@ func (c *Client) list(ctx context.Context, op, path string, payload any) (envelo
 	return env, resp.Body, err
 }
 
-func numString(v any) string {
-	switch t := v.(type) {
-	case json.Number:
-		return t.String()
-	case string:
-		return strings.TrimSpace(t)
+func numString(raw json.RawMessage) string {
+	var s string
+	if json.Unmarshal(raw, &s) == nil {
+		return strings.TrimSpace(s)
+	}
+	var n json.Number
+	if json.Unmarshal(raw, &n) == nil {
+		return n.String()
 	}
 	return ""
 }
@@ -101,7 +103,7 @@ func (c *Client) ListPackages(ctx context.Context) ([]Package, error) {
 		Charge   json.RawMessage `json:"shipping_charge"`
 		Weight   string          `json:"weight"`
 		Delivery string          `json:"delivery_time"`
-		CovID    any             `json:"coverage_id"`
+		CovID    json.RawMessage `json:"coverage_id"`
 		Coverage string          `json:"coverage"`
 	}
 	if err := jsonDecode(op, raw, &items); err != nil {
@@ -172,10 +174,10 @@ func (c *Client) ListAreasByDistrict(ctx context.Context, district string) ([]Ar
 		return nil, err
 	}
 	var items []struct {
-		ID       any    `json:"id"`
-		HubID    any    `json:"hub_id"`
-		PostCode string `json:"post_code"`
-		Name     string `json:"name"`
+		ID       json.RawMessage `json:"id"`
+		HubID    json.RawMessage `json:"hub_id"`
+		PostCode string          `json:"post_code"`
+		Name     string          `json:"name"`
 	}
 	if err := jsonDecode(op, env.Data, &items); err != nil {
 		return nil, err
@@ -202,12 +204,12 @@ func (c *Client) HubByArea(ctx context.Context, area string) (*Hub, error) {
 		return nil, err
 	}
 	var d struct {
-		Name      string  `json:"hub_name"`
-		ID        any     `json:"hub_id"`
-		Mobile    string  `json:"hub_mobile"`
-		Address   *string `json:"address"`
-		Latitude  string  `json:"latitude"`
-		Longitude string  `json:"longitude"`
+		Name      string          `json:"hub_name"`
+		ID        json.RawMessage `json:"hub_id"`
+		Mobile    string          `json:"hub_mobile"`
+		Address   *string         `json:"address"`
+		Latitude  string          `json:"latitude"`
+		Longitude string          `json:"longitude"`
 	}
 	if err := jsonDecode(op, env.Data, &d); err != nil {
 		return nil, err
@@ -237,13 +239,13 @@ func (c *Client) GetPaymentStatus(ctx context.Context, ecr string) (*PaymentStat
 		return nil, protocol(op, "empty payment record")
 	}
 	s := func(k string) string {
-		var v any
-		_ = json.Unmarshal(m[k], &v)
-		switch t := v.(type) {
-		case string:
-			return t
-		case float64:
-			return decimal.NewFromFloat(t).String()
+		var s string
+		if json.Unmarshal(m[k], &s) == nil {
+			return s
+		}
+		var n json.Number
+		if json.Unmarshal(m[k], &n) == nil {
+			return n.String()
 		}
 		return ""
 	}

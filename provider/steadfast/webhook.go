@@ -47,14 +47,14 @@ func WithWebhookTokens(tokens map[courier.AccountID]auth.Secret) Option {
 }
 
 type webhookPayload struct {
-	NotificationType string      `json:"notification_type"`
-	ConsignmentID    json.Number `json:"consignment_id"`
-	Invoice          string      `json:"invoice"`
-	CODAmount        any         `json:"cod_amount"`
-	Status           string      `json:"status"`
-	DeliveryCharge   any         `json:"delivery_charge"`
-	TrackingMessage  string      `json:"tracking_message"`
-	UpdatedAt        string      `json:"updated_at"`
+	NotificationType string          `json:"notification_type"`
+	ConsignmentID    json.Number     `json:"consignment_id"`
+	Invoice          string          `json:"invoice"`
+	CODAmount        json.RawMessage `json:"cod_amount"`
+	Status           string          `json:"status"`
+	DeliveryCharge   json.RawMessage `json:"delivery_charge"`
+	TrackingMessage  string          `json:"tracking_message"`
+	UpdatedAt        string          `json:"updated_at"`
 }
 
 func (c *Client) verifyWebhook(h http.Header, body []byte) (courier.AccountID, error) {

@@ -36,8 +36,8 @@ func truncate(s string, n int) string {
 // errorText extracts the documented {"errors":[...]} text from non-2xx bodies.
 func errorText(_ int, body []byte) (string, string) {
 	var e struct {
-		Errors  []any  `json:"errors"`
-		Message string `json:"message"`
+		Errors  []json.RawMessage `json:"errors"`
+		Message string            `json:"message"`
 	}
 	if json.Unmarshal(body, &e) != nil {
 		return "", ""
@@ -48,10 +48,11 @@ func errorText(_ int, body []byte) (string, string) {
 	return "", e.Message
 }
 
-func joinErrors(errs []any) string {
+func joinErrors(errs []json.RawMessage) string {
 	var parts []string
 	for _, v := range errs {
-		if s, ok := v.(string); ok && strings.TrimSpace(s) != "" {
+		var s string
+		if json.Unmarshal(v, &s) == nil && strings.TrimSpace(s) != "" {
 			parts = append(parts, strings.TrimSpace(s))
 		}
 	}
