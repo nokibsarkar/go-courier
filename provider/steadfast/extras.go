@@ -357,16 +357,28 @@ func (c *Client) GetPayment(ctx context.Context, id string) (*Payment, error) {
 	return mapPayment(raw)
 }
 
-// PoliceStation is a thana Steadfast delivers to.
-type PoliceStation struct {
-	ID       string
-	Name     string
-	District string
-	Raw      json.RawMessage
+// District is a Steadfast district and its police stations from the
+// reference-data response.
+type District struct {
+	ID             string          `json:"id"`
+	Name           string          `json:"name"`
+	SearchTags     json.RawMessage `json:"search_tags"`
+	PoliceStations []PoliceStation `json:"policestations"`
+	raw            json.RawMessage
 }
 
-// ListPoliceStations returns every thana with its district (reference data).
-func (c *Client) ListPoliceStations(ctx context.Context) ([]PoliceStation, error) {
+// PoliceStation is a police station within a district.
+type PoliceStation struct {
+	ID         string          `json:"id"`
+	Name       string          `json:"name"`
+	Status     int             `json:"status"`
+	DistrictID string          `json:"district_id"`
+	SearchTags json.RawMessage `json:"search_tags"`
+}
+
+// ListPoliceStations returns every district and its police stations (reference
+// data).
+func (c *Client) ListPoliceStations(ctx context.Context) ([]District, error) {
 	resp, _, err := c.call(ctx, "locations.police_stations", http.MethodGet, "/police_stations", nil, false)
 	if err != nil {
 		return nil, err
@@ -375,12 +387,19 @@ func (c *Client) ListPoliceStations(ctx context.Context) ([]PoliceStation, error
 	if err != nil {
 		return nil, err
 	}
-	out := make([]PoliceStation, 0, len(items))
+	out := make([]District, 0, len(items))
 	for i, it := range items {
 		var p struct {
-			ID       json.Number `json:"id"`
-			Name     string      `json:"name"`
-			District string      `json:"district"`
+			ID             json.Number     `json:"id"`
+			Name           string          `json:"name"`
+			SearchTags     json.RawMessage `json:"search_tags"`
+			PoliceStations []struct {
+				ID         json.Number     `json:"id"`
+				Name       string          `json:"name"`
+				Status     int             `json:"status"`
+				DistrictID json.Number     `json:"district_id"`
+				SearchTags json.RawMessage `json:"search_tags"`
+			} `json:"policestations"`
 		}
 		if err := httpx.DecodeJSON(ProviderID, "locations.police_stations", it, &p); err != nil {
 			return out, err
@@ -388,7 +407,17 @@ func (c *Client) ListPoliceStations(ctx context.Context) ([]PoliceStation, error
 		if strings.TrimSpace(p.Name) == "" {
 			return out, &courier.Error{Kind: courier.KindProtocol, Provider: ProviderID, Op: "locations.police_stations", Message: fmt.Sprintf("record %d lacks a name", i)}
 		}
-		out = append(out, PoliceStation{ID: p.ID.String(), Name: p.Name, District: p.District, Raw: it})
+		stations := make([]PoliceStation, 0, len(p.PoliceStations))
+		for _, station := range p.PoliceStations {
+			stations = append(stations, PoliceStation{
+				ID: station.ID.String(), Name: station.Name, Status: station.Status,
+				DistrictID: station.DistrictID.String(), SearchTags: station.SearchTags,
+			})
+		}
+		out = append(out, District{
+			ID: p.ID.String(), Name: p.Name, SearchTags: p.SearchTags,
+			PoliceStations: stations, raw: it,
+		})
 	}
 	return out, nil
 }

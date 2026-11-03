@@ -239,7 +239,7 @@ func TestPaymentsAndPoliceStationsAndReturnStatus(t *testing.T) {
 		case "/payments/88213":
 			_, _ = w.Write([]byte(`{"status":200,"message":"Payment fetched successfully.","payment":{"payment_id":"SFC-88213","amount":12450,"method":"bKash","due_bills":0,"paid_bills":3200,"charges":124,"total":12450.25,"status_label":"Paid","created_at":"2026-09-18 11:04:22","ready_at":"2026-09-18 12:00:00","paid_at":"2026-09-19 10:31:07","consignments":[{"consignment_id":9,"invoice":"ORD-1"}]}}`))
 		case "/police_stations":
-			_, _ = w.Write([]byte(`[{"id":1,"name":"Dhanmondi","district":"Dhaka"}]`))
+			_, _ = w.Write([]byte(`[{"id":66,"name":"Bagerhat","search_tags":null,"policestations":[{"id":127,"name":"Bagerhat sadar","status":1,"district_id":66,"search_tags":null}]}]`))
 		case "/status_with_return_status_by_cid/12":
 			_, _ = w.Write([]byte(`{"status":200,"delivery_status":"cancelled_return_rider_assigned"}`))
 		case "/status_with_return_status_by_cid/13":
@@ -265,7 +265,8 @@ func TestPaymentsAndPoliceStationsAndReturnStatus(t *testing.T) {
 		t.Fatalf("%+v %v", p, err)
 	}
 	st, err := c.ListPoliceStations(context.Background())
-	if err != nil || len(st) != 1 || st[0].District != "Dhaka" {
+	if err != nil || len(st) != 1 || st[0].ID != "66" || st[0].Name != "Bagerhat" ||
+		len(st[0].PoliceStations) != 1 || st[0].PoliceStations[0].Name != "Bagerhat sadar" {
 		t.Fatalf("%+v %v", st, err)
 	}
 	res, rs, err := c.TrackWithReturnStatus(context.Background(), "12")
