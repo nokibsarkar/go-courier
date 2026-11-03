@@ -54,13 +54,13 @@ Requires the Go version in `go.mod` (currently 1.27.3; kept on the latest releas
 
 | Package | Purpose |
 |---|---|
-| `courier` | Domain types, capability interfaces, errors, money |
-| `courier/auth` | `Secret` (redacting), typed context credentials, global/tenant resolver, bounded token cache |
-| `courier/httpx` | Shared transport: no redirects, bounded bodies/concurrency, protected headers, replay-safe-only retries |
-| `courier/webhook` | Standard `http.Handler` plumbing + constant-time HMAC helpers |
-| `courier/intelligence` | Fan-out over `CustomerRiskReader`s; per-source results, overlap-safe bounds, no merged scores |
-| `courier/reporting` | Typed incident-report dispatcher: policy, mandatory authorizer, preflight, bounded fan-out |
-| `courier/contracttest` | Public conformance helpers for independent adapters |
+| `github.com/nokibsarkar/go-courier` | Domain types, capability interfaces, errors, money |
+| `github.com/nokibsarkar/go-courier/auth` | `Secret` (redacting), typed context credentials, global/tenant resolver, bounded token cache |
+| `github.com/nokibsarkar/go-courier/httpx` | Shared transport: no redirects, bounded bodies/concurrency, protected headers, replay-safe-only retries |
+| `github.com/nokibsarkar/go-courier/webhook` | Standard `http.Handler` plumbing + constant-time HMAC helpers |
+| `github.com/nokibsarkar/go-courier/intelligence` | Fan-out over `CustomerRiskReader`s; per-source results, overlap-safe bounds, no merged scores |
+| `github.com/nokibsarkar/go-courier/reporting` | Typed incident-report dispatcher: policy, mandatory authorizer, preflight, bounded fan-out |
+| `github.com/nokibsarkar/go-courier/contracttest` | Public conformance helpers for independent adapters |
 | `github.com/nokibsarkar/go-courier/provider/steadfast`, `github.com/nokibsarkar/go-courier/provider/ecourier`, `github.com/nokibsarkar/go-courier/provider/redx`, `github.com/nokibsarkar/go-courier/provider/carrybee`, `github.com/nokibsarkar/go-courier/provider/uber`, `github.com/nokibsarkar/go-courier/provider/pathao`, `github.com/nokibsarkar/go-courier/provider/lalamove` | Provider adapters ([capabilities and gaps](PROVIDERS.md)) |
 
 ## Verification states
