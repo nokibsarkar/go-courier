@@ -178,4 +178,9 @@ govulncheck ./...          # also run in CI
 `capability_api_test.go` freezes every published capability interface's method
 set (SRS ARC-03 / QA-15). Add new functionality as a new optional interface.
 
-Licensed under the terms in [LICENSE.md](LICENSE.md).
+Licensed under the GNU Affero General Public License, version 3, in
+[LICENSE.md](LICENSE.md).
+
+Contributions are subject to the [Contributor License Agreement](CLA.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the submission and validation
+requirements.
