@@ -37,7 +37,7 @@ func Manifest() courier.SourceManifest {
 			"event_timestamp_tz": courier.UnknownUnverified,
 		},
 		Unverified: []string{
-			"time zone of tracking event timestamps",
+			"time zone of tracking event timestamps; Asia/Dhaka is used by default when absent",
 			"recipient_address length (limit stated as 40 characters, but longer values occur): not enforced locally",
 			"whether tracking POSTs are safe to replay (not auto-retried)",
 			"pages 14-21 (area by post code, post code list, branch list, booster SMS) were not reviewed",

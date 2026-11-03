@@ -25,8 +25,9 @@
 //     TrackShipment by merchant order ID.
 //   - Tracking is a POST that only reads; it is not auto-retried (TRK-13). Tracking
 //     by product_id can match several parcels and then fails with ErrAmbiguous.
-//   - The document does not state the time zone of event timestamps, so events carry
-//     OccurredAt only if you opt in with WithEventLocation; the raw entry is kept.
+//   - Event timestamps without a timezone use Asia/Dhaka by default. Override
+//     this with WithEventLocation when the provider documents another location;
+//     the raw entry is kept.
 //   - The fraud-status check may consume COD balance ("Insufficient COD Balance"
 //     is a documented outcome): treat each call as billable.
 //   - product_price is an integer taka amount; fractional amounts are rejected,

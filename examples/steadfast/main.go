@@ -39,11 +39,12 @@ func main() {
 }
 
 func dump(label string, value any) {
-	data, err := json.MarshalIndent(value, "", "  ")
-	if err != nil {
+	encoder := json.NewEncoder(os.Stdout)
+	encoder.SetIndent("", "  ")
+	if _, err := os.Stdout.WriteString(label + ":\n"); err != nil {
+		log.Fatalf("write %s: %v", label, err)
+	}
+	if err := encoder.Encode(value); err != nil {
 		log.Fatalf("encode %s: %v", label, err)
 	}
-	os.Stdout.WriteString(label + ":\n")
-	os.Stdout.Write(data)
-	os.Stdout.WriteString("\n")
 }

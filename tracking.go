@@ -5,8 +5,11 @@ import (
 	"time"
 )
 
-// Status is the canonical shipment phase. StatusUnknown is explicit and is
-// never silently mapped to success (DOM-07, TRK-07).
+// Status is the canonical shipment phase. Provider-specific statuses may be
+// canonicalized to the closest generic phase below. The reverse operation is
+// not valid: a generic provider status must not be expanded into an invented
+// granular phase. StatusUnknown is explicit and is never silently mapped to
+// success (DOM-07, TRK-07).
 type Status string
 
 const (
@@ -24,7 +27,12 @@ const (
 	StatusReturned       Status = "returned"
 )
 
-// ProviderStatus preserves the provider-native status (TRK-05).
+// ProviderStatus is the first-class provider status. It preserves the
+// provider-native code and description exactly as supplied. Adapters must not
+// normalize, merge, or replace either field when deriving the canonical
+// Status. A generic canonical Status is valid when the provider does not
+// expose a stable cross-provider equivalent, but canonicalization must remain
+// one-way from provider detail to generic phase (TRK-05).
 type ProviderStatus struct {
 	Code        string
 	Description string
@@ -103,7 +111,9 @@ type Location struct {
 // TrackingEvent is one provider event. OccurredAt is nil when the provider
 // supplied no timestamp; it is never substituted (TRK-07, DOM-08).
 type TrackingEvent struct {
-	OccurredAt     *time.Time
+	OccurredAt *time.Time
+	// ProviderStatus retains the event's exact native status independently of
+	// the canonical phase in Status.
 	ProviderStatus ProviderStatus
 	Status         Status
 	Description    string
@@ -132,8 +142,8 @@ const (
 type TrackingResult struct {
 	Ref          ShipmentRef
 	TrackingCode TrackingCode
-	// ProviderStatus is the raw current provider status; Status is the
-	// inferred canonical phase (StatusUnknown when ambiguous).
+	// ProviderStatus is the exact raw current provider status; Status is the
+	// inferred canonical phase and may be StatusUnknown when ambiguous.
 	ProviderStatus ProviderStatus
 	Status         Status
 	Coverage       HistoryCoverage

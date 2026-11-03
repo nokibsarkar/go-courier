@@ -28,6 +28,13 @@ import (
 	"github.com/nokibsarkar/go-courier/httpx"
 )
 
+func TestParseTimeDefaultsToAsiaDhaka(t *testing.T) {
+	got := parseTime("2026-11-03 10:00:00")
+	if got == nil || got.Location().String() != "Asia/Dhaka" || got.Hour() != 10 {
+		t.Fatalf("got %v", got)
+	}
+}
+
 var (
 	testNow = time.Date(2026, 11, 3, 10, 0, 0, 0, time.UTC)
 	creds   = Credentials{APIKey: "pk_test_abc", APISecret: "sk_test_secret", Market: "SG", AccountID: "acct-1"}

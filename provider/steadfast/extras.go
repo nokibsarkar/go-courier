@@ -16,10 +16,9 @@ import (
 )
 
 // The return-request creation fields and statuses are verified; the other
-// response bodies (return reads, payments, police stations, return status) use
-// assumed field names and are UNVERIFIED (see Manifest, CAP-01). Decoding is
-// permissive about extras, strict about the identifiers it depends on, and
-// every result keeps the raw payload.
+// response bodies use assumed field names and are UNVERIFIED (see Manifest,
+// CAP-01). Decoding is permissive about extras, strict about the identifiers it
+// depends on, and every result keeps the raw payload where useful.
 
 // ReturnTarget selects the parcel for a return request; set exactly one field.
 type ReturnTarget struct {
@@ -220,8 +219,8 @@ func (c *Client) ListReturnRequests(ctx context.Context, page int) ([]ReturnInfo
 }
 
 // Payment is a payout made to the merchant. Amounts are nil when absent (never
-// zero). The provider's timestamps (for example "2026-09-18 11:04:22") carry no
-// timezone, so they are kept as the original text and never converted.
+// zero). The provider's timestamps (for example "2026-09-18 11:04:22") use
+// Asia/Dhaka when no timezone is included.
 // Consignments are available in Raw for GetPayment.
 type Payment struct {
 	ID          string // for example "SFC-88213"

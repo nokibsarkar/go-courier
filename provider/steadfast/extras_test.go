@@ -86,8 +86,8 @@ func TestWebhookAuthenticatesAttributesAndAcks(t *testing.T) {
 		tr.ProviderStatus.Description != "Delivered to customer" || tr.COD != courier.CODCollected {
 		t.Fatalf("%+v", tr)
 	}
-	// a zone-less updated_at names no timezone: no instant is invented
-	if e.OccurredAt != nil || !json.Valid(e.Payload) || !strings.Contains(string(e.Payload), "2026-03-21 07:05:31") {
+	// A zone-less updated_at uses the repository default, Asia/Dhaka.
+	if e.OccurredAt == nil || e.OccurredAt.Location().String() != "Asia/Dhaka" || !json.Valid(e.Payload) || !strings.Contains(string(e.Payload), "2026-03-21 07:05:31") {
 		t.Fatalf("occurred/payload: %v %s", e.OccurredAt, e.Payload)
 	}
 }
@@ -106,7 +106,7 @@ func TestWebhookMappingsAndRejections(t *testing.T) {
 	got = nil
 	post(h, "tok-a", `{"notification_type":"tracking_update","consignment_id":7,"invoice":"X","tracking_message":"Rider assigned"}`)
 	tu := got[0].Tracking
-	if tu.Status != courier.StatusUnknown || len(tu.Events) != 1 || tu.Events[0].OccurredAt != nil || tu.Events[0].Description != "Rider assigned" {
+	if tu.Status != courier.StatusUnknown || len(tu.Events) != 1 || tu.Events[0].OccurredAt != nil || got[0].OccurredAt != nil || tu.Events[0].Description != "Rider assigned" {
 		t.Fatalf("%+v", tu)
 	}
 	// unknown notification types are preserved raw, no mapping
@@ -255,7 +255,7 @@ func TestPaymentsAndPoliceStationsAndReturnStatus(t *testing.T) {
 		ps[0].DueBills == nil || !ps[0].DueBills.Amount.IsZero() || ps[1].Amount != nil || ps[1].Charges != nil {
 		t.Fatalf("%+v %v (absent amounts must stay nil, a real 0 must stay 0)", ps, err)
 	}
-	// provider timestamps carry no timezone: kept as text, never converted
+	// Provider timestamps without a timezone use Asia/Dhaka.
 	if ps[0].CreatedAt != "2026-09-18 11:04:22" || ps[0].PaidAt != "2026-09-19 10:31:07" {
 		t.Fatalf("timestamps %q %q", ps[0].CreatedAt, ps[0].PaidAt)
 	}
@@ -410,7 +410,7 @@ func TestWebhookTrackingUpdateShape(t *testing.T) {
 	}
 	tu := got[0].Tracking
 	if got[0].Type != "tracking_update" || tu.Ref.ID != "12345" || tu.Status != courier.StatusUnknown || len(tu.Events) != 1 ||
-		tu.Events[0].Description != "Package arrived at the sorting center." || tu.Events[0].OccurredAt != nil || got[0].OccurredAt != nil {
+		tu.Events[0].Description != "Package arrived at the sorting center." || tu.Events[0].OccurredAt == nil || got[0].OccurredAt == nil {
 		t.Fatalf("%+v", got[0])
 	}
 }
@@ -425,7 +425,7 @@ func TestWebhookDeliveryStatusShape(t *testing.T) {
 	}
 	tr := got[0].Tracking
 	if tr.Status != courier.StatusDelivered || tr.Ref.ID != "12345" || tr.ProviderStatus.Code != "Delivered" ||
-		tr.ProviderStatus.Description != "Your package has been delivered successfully." || got[0].OccurredAt != nil {
+		tr.ProviderStatus.Description != "Your package has been delivered successfully." || got[0].OccurredAt == nil {
 		t.Fatalf("%+v", got[0])
 	}
 }

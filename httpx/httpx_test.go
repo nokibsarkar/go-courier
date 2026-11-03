@@ -142,7 +142,7 @@ func TestCancellationOverridesRetry(t *testing.T) {
 	defer cancel()
 	start := time.Now()
 	_, err := c.Do(ctx, Request{URL: srv.URL})
-	if err == nil || time.Since(start) > 2*time.Second {
+	if err == nil || !errors.Is(err, context.DeadlineExceeded) || time.Since(start) > 2*time.Second {
 		t.Fatalf("did not stop promptly: %v", err)
 	}
 }

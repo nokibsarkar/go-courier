@@ -176,11 +176,12 @@ func limited(field, v string, n int) (string, error) {
 	return v, nil
 }
 
-// parseEventTime parses "YYYY-MM-DD HH:MM:SS" only in an opted-in location.
+// parseEventTime parses "YYYY-MM-DD HH:MM:SS" in the configured location.
 func parseEventTime(s string, loc *time.Location) *time.Time {
 	if loc == nil {
 		return nil
 	}
+
 	t, err := time.ParseInLocation("2006-01-02 15:04:05", strings.TrimSpace(s), loc)
 	if err != nil {
 		return nil
@@ -188,6 +189,8 @@ func parseEventTime(s string, loc *time.Location) *time.Time {
 	t = t.UTC()
 	return &t
 }
+
+var asiaDhaka = time.FixedZone("Asia/Dhaka", 6*60*60)
 
 // mapStatus maps documented tracking statuses (section 2.2.3); anything else,
 // including new values, stays unknown with the raw value preserved.

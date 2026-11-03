@@ -135,17 +135,19 @@ func joinAddress(a courier.Address) string {
 
 func parseTime(s string) *time.Time {
 	s = strings.TrimSpace(s)
-	// Zone-less "YYYY-MM-DD HH:MM:SS" (the webhook updated_at) is deliberately
-	// NOT parsed: it names no timezone, and assuming UTC or Asia/Dhaka would
-	// silently shift the instant. It stays in the raw payload.
 	for _, l := range []string{time.RFC3339Nano, time.RFC3339} {
 		if t, err := time.Parse(l, s); err == nil {
 			t = t.UTC()
 			return &t
 		}
 	}
+	if t, err := time.ParseInLocation("2006-01-02 15:04:05", s, asiaDhaka); err == nil {
+		return &t
+	}
 	return nil // absent, never substituted
 }
+
+var asiaDhaka = time.FixedZone("Asia/Dhaka", 6*60*60)
 
 func mapConsignment(acct courier.AccountID, c *consignment, raw []byte) (*courier.Shipment, error) {
 	id := c.ConsignmentID.String()

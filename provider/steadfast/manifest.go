@@ -24,7 +24,7 @@ func Manifest() courier.SourceManifest {
 			"payments":          courier.VerifiedImplemented,      // list under "payments", single under "payment"
 			"returns":           courier.VerifiedImplemented,      // creation; the single and list reads are not described
 			"webhooks":          courier.VerifiedImplemented,      // bearer token plus HMAC-SHA256 X-Signature, Idempotency-Key, all event types
-			"police_stations":   courier.UnknownUnverified,        // GET /police_stations: no field is described
+			"police_stations":   courier.UnknownUnverified,        // GET /police_stations: response shape is inferred
 			"bulk_extended":     courier.DocumentedNotImplemented, // POST /create_order/bulk-order/extended
 			"cancel_shipment":   courier.ProviderUnsupported,
 			"proof_of_delivery": courier.ProviderUnsupported,
@@ -34,7 +34,7 @@ func Manifest() courier.SourceManifest {
 			"police stations: response fields",
 			"the single and list return-request bodies; the parcels settled by a payment are kept raw",
 			"the notification types other than delivery_status and tracking_update are passed through raw: their fields are only named, not typed",
-			"webhook updated_at, payment timestamps and similar fields carry no timezone, so they are kept as text and never converted to an instant",
+			"webhook updated_at, payment timestamps and similar fields use Asia/Dhaka when no timezone is included",
 			"extended bulk booking is not used",
 			"body shapes of non-400 errors",
 		},

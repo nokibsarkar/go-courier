@@ -258,14 +258,14 @@ func TestTrackingHistoryPreservedAndCurrentStatusFromTimestamps(t *testing.T) {
 		t.Fatalf("%+v", res)
 	}
 	for _, e := range res.Events {
-		if e.OccurredAt != nil {
-			t.Fatal("time zone is undocumented: OccurredAt must stay nil without WithEventLocation")
+		if e.OccurredAt == nil {
+			t.Fatal("timestamps without a timezone must use Asia/Dhaka")
 		}
 		if len(e.Raw) == 0 {
 			t.Fatal("raw entry must be kept")
 		}
 	}
-	// opt-in location
+	// Explicit location override
 	dhaka := time.FixedZone("BDT", 6*3600)
 	res, _ = global(t, s.URL, WithEventLocation(dhaka)).TrackShipment(context.Background(), courier.TrackingRequest{Code: "ECR1022001175478"})
 	if res.Events[0].OccurredAt == nil || res.Events[0].OccurredAt.Format(time.RFC3339) != "2017-01-20T06:04:55Z" || res.Delivery.DeliveredAt == nil {

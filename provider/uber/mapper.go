@@ -68,8 +68,13 @@ func parseTime(s string) *time.Time {
 			return &t
 		}
 	}
+	if t, err := time.ParseInLocation("2006-01-02 15:04:05", s, asiaDhaka); err == nil {
+		return &t
+	}
 	return nil // absent, never substituted
 }
+
+var asiaDhaka = time.FixedZone("Asia/Dhaka", 6*60*60)
 
 // embeddedFailure turns an HTTP 2xx body that embeds an error into an error.
 func embeddedFailure(op, kind, code, id string) error {

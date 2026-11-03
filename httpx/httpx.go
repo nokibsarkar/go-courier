@@ -258,7 +258,7 @@ func (c *Client) Do(ctx context.Context, r Request) (*Response, error) {
 			select {
 			case <-ctx.Done():
 				t.Stop()
-				return lastResp, lastErr // caller cancellation overrides retry scheduling
+				return lastResp, c.ctxErr(r, ctx.Err(), r.Mutation)
 			case <-t.C:
 			}
 		}

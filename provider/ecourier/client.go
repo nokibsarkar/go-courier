@@ -110,8 +110,8 @@ func WithMaxConcurrent(n int) Option { return func(s *settings) { s.maxConc = n 
 // POSTs and are never treated as replay-safe, so this only affects future GETs.
 func WithRetry(p httpx.RetryPolicy) Option { return func(s *settings) { s.retry = &p } }
 
-// WithEventLocation declares the time zone of tracking event timestamps. The
-// v5.5 document does not state it, so without this option OccurredAt stays nil.
+// WithEventLocation overrides the default Asia/Dhaka location for tracking
+// event timestamps that do not include a timezone.
 func WithEventLocation(l *time.Location) Option { return func(s *settings) { s.loc = l } }
 
 // WithCancelComment sets the mandatory cancel reason used by CancelShipment
@@ -153,6 +153,9 @@ func build(mode auth.Mode, opts []Option) (*Client, error) {
 		MaxConcurrent: s.maxConc, Retry: derefRetry(s.retry), Logger: s.logger})
 	if err != nil {
 		return nil, err
+	}
+	if s.loc == nil {
+		s.loc = asiaDhaka
 	}
 	c := &Client{http: hc, baseURL: strings.TrimRight(s.baseURL, "/"), loc: s.loc, cancelMsg: s.cancelMsg}
 	switch mode {

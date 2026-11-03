@@ -36,8 +36,11 @@ Requires the Go version in `go.mod` (currently 1.27.3; kept on the latest releas
   mutations are never retried automatically, and an HTTP 200 carrying a business
   failure is an error.
 - **No fabricated data.** Tracking results state history coverage
-  (`full | partial | current_only | unknown`), keep raw provider statuses, leave
-  missing timestamps `nil`, and map ambiguous statuses to `StatusUnknown`.
+  (`full | partial | current_only | unknown`), preserve the exact provider
+  status code and description as first-class data, leave missing timestamps
+  `nil`, and canonicalize provider-specific statuses only toward the closest
+  generic `Status`, never in the reverse direction, without discarding native
+  values.
 - **Quiet by default.** Optional `*slog.Logger` (no-op default, never
   `slog.Default()`). At info and above nothing but outcomes is logged. At
   **debug** level every HTTP exchange (and every received webhook) is logged
@@ -58,7 +61,7 @@ Requires the Go version in `go.mod` (currently 1.27.3; kept on the latest releas
 | `courier/intelligence` | Fan-out over `CustomerRiskReader`s; per-source results, overlap-safe bounds, no merged scores |
 | `courier/reporting` | Typed incident-report dispatcher: policy, mandatory authorizer, preflight, bounded fan-out |
 | `courier/contracttest` | Public conformance helpers for independent adapters |
-| `courier/provider/steadfast`, `courier/provider/ecourier`, `courier/provider/redx`, `courier/provider/carrybee`, `courier/provider/uber`, `courier/provider/pathao`, `courier/provider/lalamove` | Provider adapters ([capabilities and gaps](PROVIDERS.md)) |
+| `github.com/nokibsarkar/go-courier/provider/steadfast`, `github.com/nokibsarkar/go-courier/provider/ecourier`, `github.com/nokibsarkar/go-courier/provider/redx`, `github.com/nokibsarkar/go-courier/provider/carrybee`, `github.com/nokibsarkar/go-courier/provider/uber`, `github.com/nokibsarkar/go-courier/provider/pathao`, `github.com/nokibsarkar/go-courier/provider/lalamove` | Provider adapters ([capabilities and gaps](PROVIDERS.md)) |
 
 ## Verification states
 

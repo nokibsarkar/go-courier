@@ -36,6 +36,13 @@ func bdt(s string) *courier.Money {
 
 func w500() *uint32 { v := uint32(500); return &v }
 
+func TestParseTimeDefaultsToAsiaDhaka(t *testing.T) {
+	got := parseTime("2026-11-03 10:00:00")
+	if got == nil || got.Location().String() != "Asia/Dhaka" || got.Hour() != 10 {
+		t.Fatalf("got %v", got)
+	}
+}
+
 func goodReq() courier.CreateShipmentRequest {
 	return courier.CreateShipmentRequest{
 		MerchantOrderID: "ACBD1234TEST",

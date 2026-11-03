@@ -108,8 +108,13 @@ func parseTime(s string) *time.Time {
 			return &t
 		}
 	}
+	if t, err := time.ParseInLocation("2006-01-02 15:04:05", s, asiaDhaka); err == nil {
+		return &t
+	}
 	return nil // absent, never substituted
 }
+
+var asiaDhaka = time.FixedZone("Asia/Dhaka", 6*60*60)
 
 // money builds exact Money from provider total and currency; nil when either is
 // absent. The currency is never defaulted.

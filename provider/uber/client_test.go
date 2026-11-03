@@ -28,6 +28,13 @@ const (
 	deliveryJSON = `{"kind":"delivery","id":"del_1","status":"pending","fee":1299,"currency":"usd","currency_type":"USD","external_id":"ORD-1","created":"2026-11-03T10:01:00Z","tracking_url":"https://example.invalid/t/1"}`
 )
 
+func TestParseTimeDefaultsToAsiaDhaka(t *testing.T) {
+	got := parseTime("2026-11-03 10:00:00")
+	if got == nil || got.Location().String() != "Asia/Dhaka" || got.Hour() != 10 {
+		t.Fatalf("got %v", got)
+	}
+}
+
 func happyAPI(t *testing.T, seen *[]string) func(w http.ResponseWriter, r *http.Request, body string) {
 	var mu sync.Mutex
 	return func(w http.ResponseWriter, r *http.Request, body string) {

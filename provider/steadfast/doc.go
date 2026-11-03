@@ -6,10 +6,11 @@
 //     orders as a JSON array), ShipmentTracker, BalanceReader and webhooks.
 //   - Native methods: GetCustomerScore, TrackingHistory, TrackWithReturnStatus,
 //     CreatePickupRequest, CreateReturnRequest, ListPayments, GetPayment and
-//     ListPoliceStations.
-//   - Not described, so decoded permissively and kept raw: police-station
-//     fields and the single and list return-request bodies. A single payment
-//     arrives under "payment", like a single order under "consignment".
+//     ListPoliceStations. ListPoliceStations returns districts with nested
+//     police stations.
+//   - The single and list return-request bodies are not described by the
+//     provider and are decoded permissively. A single payment arrives under
+//     "payment", like a single order under "consignment".
 //   - Not offered by the provider API: cancel. Extended bulk booking is not
 //     used.
 //
